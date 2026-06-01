@@ -11,7 +11,7 @@
   --border: #242424; --border2: #303030;
   --text: #e8e8e8; --text2: #888; --text3: #444;
   --accent: #c8f542; --accent2: rgba(200,245,66,0.08);
-  --red: #f87171; --blue: #60a5fa; --amber: #fbbf24;
+  --red: #f87171; --blue: #60a5fa; --amber: #fbbf24; --green: #4ade80;
   --mono: 'DM Mono', monospace; --sans: 'Noto Sans TC', sans-serif; --radius: 8px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,20 +30,12 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); font
 .field input { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 13px; padding: 9px 12px; font-family: var(--sans); outline: none; transition: border-color .15s; }
 .field input:focus { border-color: var(--border2); }
 .field input::placeholder { color: var(--text3); }
-.source-toggles { display: flex; flex-direction: column; gap: 6px; }
-.toggle-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all .15s; }
-.toggle-item:hover { border-color: var(--border2); }
-.toggle-item.active { border-color: var(--accent); background: var(--accent2); }
-.toggle-label { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-.toggle-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text3); }
-.toggle-item.active .toggle-dot { background: var(--accent); }
-.toggle-badge { font-family: var(--mono); font-size: 10px; color: var(--text3); }
-.toggle-item.active .toggle-badge { color: var(--accent); }
 .btn-search { width: 100%; padding: 11px; background: var(--accent); color: #0c0c0c; font-size: 13px; font-weight: 500; font-family: var(--sans); border: none; border-radius: var(--radius); cursor: pointer; transition: opacity .15s; margin-top: 8px; }
 .btn-search:hover { opacity: .85; }
 .btn-search:disabled { opacity: .4; cursor: not-allowed; }
+.sidebar-note { font-size: 11px; color: var(--text3); line-height: 1.6; margin-top: 16px; padding: 10px; background: var(--bg2); border-radius: var(--radius); border: 1px solid var(--border); }
 .main { overflow-y: auto; }
-.main-inner { padding: 28px 32px; max-width: 900px; }
+.main-inner { padding: 28px 32px; max-width: 960px; }
 .empty { text-align: center; padding: 80px 40px; }
 .empty-icon { font-family: var(--mono); font-size: 48px; color: var(--text3); margin-bottom: 16px; }
 .empty-title { font-size: 16px; color: var(--text2); margin-bottom: 8px; }
@@ -52,24 +44,35 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); font
 .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
 .section-title { font-size: 13px; font-weight: 500; color: var(--text); font-family: var(--mono); letter-spacing: .04em; }
 .section-count { font-family: var(--mono); font-size: 11px; color: var(--text3); background: var(--bg3); padding: 2px 8px; border-radius: 20px; }
-.post-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; transition: border-color .15s; }
-.post-card:hover { border-color: var(--border2); }
-.post-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.post-source { font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 20px; }
-.source-ptt { background: rgba(248,113,113,.1); color: var(--red); }
-.source-dcard { background: rgba(96,165,250,.1); color: var(--blue); }
-.source-maps { background: rgba(251,191,36,.1); color: var(--amber); }
-.source-trends { background: rgba(200,245,66,.1); color: var(--accent); }
-.post-date { font-family: var(--mono); font-size: 10px; color: var(--text3); }
-.post-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; line-height: 1.5; }
-.post-body { font-size: 12px; color: var(--text2); line-height: 1.7; }
-.post-link { font-family: var(--mono); font-size: 10px; color: var(--accent); text-decoration: none; margin-top: 8px; display: inline-block; }
-.post-link:hover { opacity: .7; }
+.place-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+.place-header { padding: 14px 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; cursor: pointer; }
+.place-header:hover { background: var(--bg3); }
+.place-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.place-meta { font-size: 11px; color: var(--text2); display: flex; gap: 10px; }
+.rating { color: var(--amber); }
+.btn-analyze { background: var(--accent2); border: 1px solid rgba(200,245,66,.3); color: var(--accent); font-size: 11px; font-family: var(--mono); padding: 5px 12px; border-radius: var(--radius); cursor: pointer; white-space: nowrap; transition: all .15s; }
+.btn-analyze:hover { background: rgba(200,245,66,.15); }
+.btn-analyze:disabled { opacity: .4; cursor: not-allowed; }
+.place-reviews { border-top: 1px solid var(--border); }
+.review-item { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.review-item:last-child { border-bottom: none; }
+.review-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.review-stars { color: var(--amber); font-size: 11px; }
+.review-date { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+.review-text { font-size: 12px; color: var(--text2); line-height: 1.7; }
+.ai-analysis { margin: 0 16px 14px; background: rgba(200,245,66,.04); border: 1px solid rgba(200,245,66,.15); border-radius: var(--radius); padding: 14px; }
+.ai-label { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: .08em; margin-bottom: 10px; }
+.ai-pain-item { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
+.ai-pain-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin-top: 6px; flex-shrink: 0; }
+.ai-pain-text { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.ai-pain-tag { display: inline-block; font-size: 10px; font-family: var(--mono); background: rgba(200,245,66,.1); color: var(--accent); padding: 1px 7px; border-radius: 20px; margin-left: 6px; }
+.trends-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.trends-link { font-family: var(--mono); font-size: 10px; color: var(--accent); text-decoration: none; display: inline-block; margin-top: 8px; }
+.trends-link:hover { opacity: .7; }
 .loading { display: flex; align-items: center; gap: 8px; color: var(--text3); font-family: var(--mono); font-size: 12px; padding: 16px 0; }
 .spinner { width: 14px; height: 14px; border: 1.5px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .error-msg { background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.2); border-radius: var(--radius); padding: 10px 14px; font-size: 12px; color: var(--red); margin-bottom: 12px; }
-.rating-stars { color: var(--amber); font-size: 11px; }
 @media (max-width: 768px) {
   .layout { grid-template-columns: 1fr; }
   .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
@@ -89,59 +92,39 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); font
 <div class="layout">
   <aside class="sidebar">
     <div class="sidebar-section">
-      <div class="sidebar-label">搜尋關鍵字</div>
+      <div class="sidebar-label">搜尋設定</div>
       <div class="field">
-        <label>關鍵字</label>
-        <input type="text" id="keyword" placeholder="例：術後追蹤、爽約" />
+        <label>店家類型</label>
+        <input type="text" id="biz-type" placeholder="例：醫美診所、美甲工作室" value="醫美診所" />
       </div>
       <div class="field">
-        <label>產業別（選填）</label>
-        <input type="text" id="industry" placeholder="例：醫美診所、美甲工作室" />
+        <label>城市</label>
+        <input type="text" id="city" placeholder="例：台北、台中、高雄" value="台北" />
+      </div>
+      <div class="field">
+        <label>Google Trends 關鍵字</label>
+        <input type="text" id="trend-kw" placeholder="例：術後照顧、預約系統" />
       </div>
     </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">資料來源</div>
-      <div class="source-toggles">
-        <div class="toggle-item active" id="toggle-ptt" onclick="toggleSource('ptt')">
-          <div class="toggle-label"><div class="toggle-dot"></div>PTT（RSS）</div>
-          <div class="toggle-badge">公開</div>
-        </div>
-        <div class="toggle-item active" id="toggle-dcard" onclick="toggleSource('dcard')">
-          <div class="toggle-label"><div class="toggle-dot"></div>Dcard（RSS）</div>
-          <div class="toggle-badge">公開</div>
-        </div>
-        <div class="toggle-item active" id="toggle-maps" onclick="toggleSource('maps')">
-          <div class="toggle-label"><div class="toggle-dot"></div>Google Maps</div>
-          <div class="toggle-badge">1星評論</div>
-        </div>
-        <div class="toggle-item active" id="toggle-trends" onclick="toggleSource('trends')">
-          <div class="toggle-label"><div class="toggle-dot"></div>Google Trends</div>
-          <div class="toggle-badge">外部連結</div>
-        </div>
-      </div>
+    <button class="btn-search" id="search-btn" onclick="doSearch()">開始分析</button>
+    <div class="sidebar-note">
+      搜尋低評分評論 → AI 反推老闆痛點 → 找到你的商機
     </div>
-    <button class="btn-search" id="search-btn" onclick="doSearch()">開始搜尋</button>
   </aside>
   <main class="main">
     <div class="main-inner" id="results">
       <div class="empty">
         <div class="empty-icon">◎</div>
-        <div class="empty-title">輸入關鍵字開始偵測痛點</div>
-        <div class="empty-sub">從 PTT、Dcard RSS、Google Maps 一星評論<br>和 Google Trends 蒐集真實的市場討論</div>
+        <div class="empty-title">輸入店家類型開始分析</div>
+        <div class="empty-sub">從 Google Maps 低評分評論<br>用 AI 反推商家營運痛點</div>
       </div>
     </div>
   </main>
 </div>
 <script>
-const PROXY = 'https://hquzchzcoygnmninemvp.supabase.co/functions/v1/fetch-proxy';
-const ANON  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxdXpjaHpjb3lnbm1uaW5lbXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzIwMjQsImV4cCI6MjA5NDc0ODAyNH0.igTevzpprg0W_tb3FgcVt5gILcONWMG1jYAW_p7GhYk';
-
-let sources = { ptt: true, dcard: true, maps: true, trends: true };
-
-function toggleSource(s) {
-  sources[s] = !sources[s];
-  document.getElementById('toggle-' + s).classList.toggle('active', sources[s]);
-}
+const PROXY    = 'https://hquzchzcoygnmninemvp.supabase.co/functions/v1/fetch-proxy';
+const AI_PROXY = 'https://hquzchzcoygnmninemvp.supabase.co/functions/v1/ai-autofill';
+const ANON     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxdXpjaHpjb3lnbm1uaW5lbXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzIwMjQsImV4cCI6MjA5NDc0ODAyNH0.igTevzpprg0W_tb3FgcVt5gILcONWMG1jYAW_p7GhYk';
 
 async function callProxy(type, params) {
   const res = await fetch(PROXY, {
@@ -153,19 +136,21 @@ async function callProxy(type, params) {
 }
 
 async function doSearch() {
-  const keyword = document.getElementById('keyword').value.trim();
-  if (!keyword) { document.getElementById('keyword').focus(); return; }
-  const industry = document.getElementById('industry').value.trim();
+  const bizType = document.getElementById('biz-type').value.trim();
+  const city    = document.getElementById('city').value.trim();
+  const trendKw = document.getElementById('trend-kw').value.trim();
+  if (!bizType) { document.getElementById('biz-type').focus(); return; }
+
   const btn = document.getElementById('search-btn');
   btn.disabled = true; btn.textContent = '搜尋中...';
   document.getElementById('results').innerHTML = '';
-  const tasks = [];
-  if (sources.ptt)    tasks.push(fetchPTT(keyword, industry));
-  if (sources.dcard)  tasks.push(fetchDcard(keyword, industry));
-  if (sources.maps)   tasks.push(fetchMaps(keyword, industry));
-  if (sources.trends) fetchTrends(keyword);
-  await Promise.allSettled(tasks);
-  btn.disabled = false; btn.textContent = '開始搜尋';
+
+  await Promise.allSettled([
+    fetchMaps(bizType, city),
+    trendKw ? Promise.resolve(showTrends(trendKw)) : Promise.resolve(),
+  ]);
+
+  btn.disabled = false; btn.textContent = '開始分析';
 }
 
 function appendSection(id, title, badge, content) {
@@ -186,84 +171,138 @@ function showLoading(id, title) {
   appendSection(id, title, '載入中', `<div class="loading"><div class="spinner"></div>搜尋中...</div>`);
 }
 
-async function fetchPTT(keyword, industry) {
-  showLoading('ptt', 'PTT');
+// ── Google Maps ───────────────────────────────────────────
+async function fetchMaps(bizType, city) {
+  showLoading('maps', `Google Maps — ${bizType} ${city}`);
   try {
-    const q = industry ? `${keyword} ${industry}` : keyword;
-    const data = await callProxy('ptt', { keyword: q });
-    const posts = data.posts || [];
-    if (!posts.length) { appendSection('ptt', 'PTT', '0 筆', `<div class="error-msg">PTT 沒有找到相關貼文</div>`); return; }
-    const html = posts.map(p => `
-      <div class="post-card">
-        <div class="post-meta"><span class="post-source source-ptt">PTT · ${esc(p.board||'')}</span><span class="post-date">${esc(p.date)}</span></div>
-        <div class="post-title">${esc(p.title)}</div>
-        <a class="post-link" href="${esc(p.url)}" target="_blank">閱讀原文 →</a>
-      </div>`).join('');
-    appendSection('ptt', 'PTT', `${posts.length} 筆`, html);
-  } catch(e) { appendSection('ptt', 'PTT', '錯誤', `<div class="error-msg">PTT 載入失敗：${e.message}</div>`); }
-}
-
-async function fetchDcard(keyword, industry) {
-  showLoading('dcard', 'Dcard');
-  try {
-    const q = industry ? `${keyword} ${industry}` : keyword;
-    const data = await callProxy('dcard', { keyword: q });
-    const posts = data.posts || [];
-    if (!posts.length) { appendSection('dcard', 'Dcard', '0 筆', `<div class="error-msg">Dcard 沒有找到相關貼文</div>`); return; }
-    const html = posts.map(p => `
-      <div class="post-card">
-        <div class="post-meta"><span class="post-source source-dcard">Dcard</span><span class="post-date">${esc(p.date)}</span></div>
-        <div class="post-title">${esc(p.title)}</div>
-        ${p.excerpt ? `<div class="post-body">${esc(p.excerpt)}...</div>` : ''}
-        <a class="post-link" href="${esc(p.url)}" target="_blank">閱讀原文 →</a>
-      </div>`).join('');
-    appendSection('dcard', 'Dcard', `${posts.length} 筆`, html);
-  } catch(e) { appendSection('dcard', 'Dcard', '錯誤', `<div class="error-msg">Dcard 載入失敗：${e.message}</div>`); }
-}
-
-async function fetchMaps(keyword, industry) {
-  showLoading('maps', 'Google Maps 一星評論');
-  try {
-    const query = industry ? `${industry} ${keyword}` : keyword;
-    const searchData = await callProxy('maps_search', { query });
-    const places = (searchData.results || []).slice(0, 5);
-    if (!places.length) { appendSection('maps', 'Google Maps 一星評論', '0 筆', `<div class="error-msg">Maps 沒有找到相關店家</div>`); return; }
-    const reviews = [];
-    for (const place of places) {
-      try {
-        const detail = await callProxy('maps_detail', { place_id: place.place_id });
-        const lowReviews = (detail.result?.reviews || []).filter(r => r.rating <= 2);
-        lowReviews.forEach(r => reviews.push({ ...r, place_name: place.name }));
-      } catch(e) {}
+    const query = `${city} ${bizType}`;
+    const data = await callProxy('maps_search', { query });
+    const places = data.places || [];
+    if (!places.length) {
+      appendSection('maps', `Google Maps — ${bizType}`, '0 筆', `<div class="error-msg">沒有找到相關店家，請換個關鍵字</div>`);
+      return;
     }
-    if (!reviews.length) { appendSection('maps', 'Google Maps 一星評論', '0 筆', `<div class="error-msg">沒有找到低評分評論</div>`); return; }
-    const html = reviews.slice(0, 8).map(r => {
-      const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
-      return `<div class="post-card">
-        <div class="post-meta"><span class="post-source source-maps">Maps</span><span class="rating-stars">${stars}</span><span class="post-date">${r.rating}星</span></div>
-        <div class="post-title" style="font-size:12px;color:var(--text2);font-weight:400;">${esc(r.place_name)}</div>
-        <div class="post-body">${esc(r.text||'')}</div>
+
+    const html = places.map(p => {
+      const stars = p.rating ? '★'.repeat(Math.round(p.rating)) + '☆'.repeat(5 - Math.round(p.rating)) : '';
+      return `<div class="place-card" id="place-${esc(p.id)}">
+        <div class="place-header">
+          <div>
+            <div class="place-name">${esc(p.displayName?.text || '')}</div>
+            <div class="place-meta">
+              <span class="rating">${stars} ${p.rating || '—'}</span>
+              <span>${p.userRatingCount || 0} 則評論</span>
+              <span>${esc(p.formattedAddress || '')}</span>
+            </div>
+          </div>
+          <button class="btn-analyze" onclick="analyzePlace('${esc(p.id)}', '${esc(p.displayName?.text || '')}', '${esc(bizType)}')">
+            ✦ AI 分析痛點
+          </button>
+        </div>
+        <div id="analysis-${esc(p.id)}"></div>
       </div>`;
     }).join('');
-    appendSection('maps', 'Google Maps 一星評論', `${reviews.length} 筆`, html);
-  } catch(e) { appendSection('maps', 'Google Maps 一星評論', '錯誤', `<div class="error-msg">Maps 載入失敗：${e.message}</div>`); }
+
+    appendSection('maps', `Google Maps — ${bizType} ${city}`, `${places.length} 間店家`, html);
+  } catch(e) {
+    appendSection('maps', `Google Maps`, '錯誤', `<div class="error-msg">載入失敗：${e.message}</div>`);
+  }
 }
 
-function fetchTrends(keyword) {
+// ── AI 分析痛點 ───────────────────────────────────────────
+async function analyzePlace(placeId, placeName, bizType) {
+  const container = document.getElementById(`analysis-${placeId}`);
+  const btn = document.querySelector(`#place-${placeId} .btn-analyze`);
+  if (!container || !btn) return;
+
+  btn.disabled = true; btn.textContent = '分析中...';
+  container.innerHTML = `<div class="loading" style="padding:12px 16px;"><div class="spinner"></div>抓取評論並分析中...</div>`;
+
+  try {
+    // 抓評論
+    const data = await callProxy('maps_reviews', { place_id: placeId });
+    const reviews = data.reviews || [];
+
+    if (!reviews.length) {
+      container.innerHTML = `<div style="padding:12px 16px;font-size:12px;color:var(--text3);">這間店沒有公開評論</div>`;
+      btn.disabled = false; btn.textContent = '✦ AI 分析痛點';
+      return;
+    }
+
+    // 只取低評分（1-3星）
+    const lowReviews = reviews.filter(r => (r.rating || 5) <= 3);
+    const allReviews = lowReviews.length > 0 ? lowReviews : reviews.slice(0, 5);
+
+    // 顯示評論
+    const reviewHtml = allReviews.slice(0, 5).map(r => {
+      const stars = '★'.repeat(r.rating||5) + '☆'.repeat(5-(r.rating||5));
+      const text = r.text?.text || r.originalText?.text || '（無文字評論）';
+      return `<div class="review-item">
+        <div class="review-meta">
+          <span class="review-stars">${stars}</span>
+          <span class="review-date">${r.relativePublishTimeDescription || ''}</span>
+        </div>
+        <div class="review-text">${esc(text)}</div>
+      </div>`;
+    }).join('');
+
+    // 呼叫 AI 分析
+    const reviewTexts = allReviews.map(r => `${r.rating}星：${r.text?.text || r.originalText?.text || ''}`).join('\n');
+    const prompt = `以下是台灣一間「${bizType}」（${placeName}）的顧客評論：\n\n${reviewTexts}\n\n請以企業管理顧問的角度，分析這家店老闆目前面臨的3個最主要營運痛點，以及對應的自動化解決商機。用繁體中文，每個痛點一行，格式：【痛點名稱】說明 → 商機：解決方向`;
+
+    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    const aiData = await aiRes.json();
+    const aiText = aiData.content?.[0]?.text || '分析失敗';
+
+    // 解析 AI 輸出
+    const lines = aiText.split('\n').filter(l => l.trim() && l.includes('【'));
+    const painHtml = lines.map(line => {
+      const tagMatch = line.match(/【([^】]+)】/);
+      const tag = tagMatch ? tagMatch[1] : '';
+      const rest = line.replace(/【[^】]+】/, '').trim();
+      return `<div class="ai-pain-item">
+        <div class="ai-pain-dot"></div>
+        <div class="ai-pain-text">${tag ? `<span class="ai-pain-tag">${esc(tag)}</span> ` : ''}${esc(rest)}</div>
+      </div>`;
+    }).join('') || `<div class="ai-pain-item"><div class="ai-pain-dot"></div><div class="ai-pain-text">${esc(aiText)}</div></div>`;
+
+    container.innerHTML = `
+      <div class="place-reviews">${reviewHtml}</div>
+      <div class="ai-analysis">
+        <div class="ai-label">✦ AI 反推老闆痛點與商機</div>
+        ${painHtml}
+      </div>`;
+
+    btn.textContent = '✓ 已分析';
+  } catch(e) {
+    container.innerHTML = `<div style="padding:12px 16px;"><div class="error-msg">分析失敗：${e.message}</div></div>`;
+    btn.disabled = false; btn.textContent = '✦ AI 分析痛點';
+  }
+}
+
+// ── Google Trends ─────────────────────────────────────────
+function showTrends(keyword) {
   const kw = encodeURIComponent(keyword);
   const url = `https://trends.google.com.tw/trends/explore?geo=TW&q=${kw}`;
   appendSection('trends', 'Google Trends（台灣）', '外部連結',
-    `<div class="post-card">
-      <div class="post-meta"><span class="post-source source-trends">Trends</span></div>
-      <div class="post-title">查看「${esc(keyword)}」在台灣的搜尋趨勢</div>
-      <div class="post-body" style="margin-top:6px;">點擊下方連結，看這個關鍵字的搜尋量是上升還是下降。</div>
-      <a class="post-link" href="${url}" target="_blank">前往 Google Trends 查看 →</a>
+    `<div class="trends-card">
+      <div style="font-size:13px;font-weight:500;color:var(--text);">查看「${esc(keyword)}」在台灣的搜尋趨勢</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:6px;">確認這個問題是否有足夠多的人在搜尋解法。</div>
+      <a class="trends-link" href="${url}" target="_blank">前往 Google Trends 查看 →</a>
     </div>`
   );
 }
 
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-document.getElementById('keyword').addEventListener('keydown', e => { if (e.key==='Enter') doSearch(); });
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+document.getElementById('biz-type').addEventListener('keydown', e => { if (e.key==='Enter') doSearch(); });
 </script>
 </body>
 </html>
