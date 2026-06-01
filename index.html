@@ -246,21 +246,14 @@ async function analyzePlace(placeId, placeName, bizType) {
       </div>`;
     }).join('');
 
-    // 呼叫 AI 分析
-    const reviewTexts = allReviews.map(r => `${r.rating}星：${r.text?.text || r.originalText?.text || ''}`).join('\n');
-    const prompt = `以下是台灣一間「${bizType}」（${placeName}）的顧客評論：\n\n${reviewTexts}\n\n請以企業管理顧問的角度，分析這家店老闆目前面臨的3個最主要營運痛點，以及對應的自動化解決商機。用繁體中文，每個痛點一行，格式：【痛點名稱】說明 → 商機：解決方向`;
-
-    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 600,
-        messages: [{ role: 'user', content: prompt }],
-      }),
+    // 呼叫 AI 分析（透過 Edge Function）
+    const reviewTexts = allReviews.map(r => `${r.rating}星：${r.text?.text || r.originalText?.text || ''}`).join("\n");
+    const aiData = await callProxy("analyze_reviews", {
+      reviews: reviewTexts,
+      bizType: bizType,
+      placeName: placeName,
     });
-    const aiData = await aiRes.json();
-    const aiText = aiData.content?.[0]?.text || '分析失敗';
+    const aiText = aiData.analysis || aiData.error || "分析失敗";
 
     // 解析 AI 輸出
     const lines = aiText.split('\n').filter(l => l.trim() && l.includes('【'));
