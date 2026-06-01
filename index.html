@@ -253,25 +253,34 @@ async function analyzePlace(placeId, placeName, bizType) {
       bizType: bizType,
       placeName: placeName,
     });
-    const aiText = aiData.analysis || aiData.error || "分析失敗";
-
-    // 解析 AI 輸出
-    const lines = aiText.split('\n').filter(l => l.trim() && l.includes('【'));
-    const painHtml = lines.map(line => {
-      const tagMatch = line.match(/【([^】]+)】/);
-      const tag = tagMatch ? tagMatch[1] : '';
-      const rest = line.replace(/【[^】]+】/, '').trim();
-      return `<div class="ai-pain-item">
-        <div class="ai-pain-dot"></div>
-        <div class="ai-pain-text">${tag ? `<span class="ai-pain-tag">${esc(tag)}</span> ` : ''}${esc(rest)}</div>
-      </div>`;
-    }).join('') || `<div class="ai-pain-item"><div class="ai-pain-dot"></div><div class="ai-pain-text">${esc(aiText)}</div></div>`;
+    const result = aiData.analysis;
+    let analysisHtml = '';
+    if (result && typeof result === 'object') {
+      const saasHtml = (result.proposed_micro_saas || []).map(s => `
+        <div style="margin-top:10px;padding:10px 12px;background:var(--bg);border:1px solid rgba(200,245,66,.15);border-radius:6px;">
+          <div style="font-size:12px;font-weight:500;color:var(--accent);margin-bottom:4px;">${esc(s.product_name||'')}</div>
+          <div style="font-size:11.5px;color:var(--text2);margin-bottom:4px;">${esc(s.core_function||'')}</div>
+          <div style="font-size:10.5px;color:var(--text3);font-family:var(--mono);">實作：${esc(s.implementation_logic||'')}</div>
+        </div>`).join('');
+      analysisHtml = `
+        <div class="ai-pain-item" style="margin-bottom:8px;">
+          <div class="ai-pain-dot"></div>
+          <div class="ai-pain-text"><span class="ai-pain-tag">根本原因</span> ${esc(result.root_cause_analysis||'')}</div>
+        </div>
+        <div class="ai-pain-item">
+          <div class="ai-pain-dot"></div>
+          <div class="ai-pain-text"><span class="ai-pain-tag">老闆痛點</span> ${esc(result.owner_pain_point||'')}</div>
+        </div>
+        ${saasHtml}`;
+    } else {
+      analysisHtml = `<div class="ai-pain-item"><div class="ai-pain-dot"></div><div class="ai-pain-text">${esc(String(result||aiData.error||'分析失敗'))}</div></div>`;
+    }
 
     container.innerHTML = `
       <div class="place-reviews">${reviewHtml}</div>
       <div class="ai-analysis">
         <div class="ai-label">✦ AI 反推老闆痛點與商機</div>
-        ${painHtml}
+        ${analysisHtml}
       </div>`;
 
     btn.textContent = '✓ 已分析';
