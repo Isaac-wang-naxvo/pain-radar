@@ -1,310 +1,883 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pain Radar — 痛點偵測工具</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #0c0c0c; --bg2: #141414; --bg3: #1c1c1c;
-  --border: #242424; --border2: #303030;
-  --text: #e8e8e8; --text2: #888; --text3: #444;
-  --accent: #c8f542; --accent2: rgba(200,245,66,0.08);
-  --red: #f87171; --blue: #60a5fa; --amber: #fbbf24; --green: #4ade80;
-  --mono: 'DM Mono', monospace; --sans: 'Noto Sans TC', sans-serif; --radius: 8px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; min-height: 100vh; }
-.header { border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
-.logo { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: .12em; text-transform: uppercase; }
-.logo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: var(--mono); }
-.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-.layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 61px); }
-.sidebar { border-right: 1px solid var(--border); padding: 24px 20px; }
-.sidebar-section { margin-bottom: 24px; }
-.sidebar-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--text3); text-transform: uppercase; margin-bottom: 10px; }
-.field { margin-bottom: 12px; }
-.field label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 5px; font-family: var(--mono); }
-.field input { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 13px; padding: 9px 12px; font-family: var(--sans); outline: none; transition: border-color .15s; }
-.field input:focus { border-color: var(--border2); }
-.field input::placeholder { color: var(--text3); }
-.btn-search { width: 100%; padding: 11px; background: var(--accent); color: #0c0c0c; font-size: 13px; font-weight: 500; font-family: var(--sans); border: none; border-radius: var(--radius); cursor: pointer; transition: opacity .15s; margin-top: 8px; }
-.btn-search:hover { opacity: .85; }
-.btn-search:disabled { opacity: .4; cursor: not-allowed; }
-.sidebar-note { font-size: 11px; color: var(--text3); line-height: 1.6; margin-top: 16px; padding: 10px; background: var(--bg2); border-radius: var(--radius); border: 1px solid var(--border); }
-.main { overflow-y: auto; }
-.main-inner { padding: 28px 32px; max-width: 960px; }
-.empty { text-align: center; padding: 80px 40px; }
-.empty-icon { font-family: var(--mono); font-size: 48px; color: var(--text3); margin-bottom: 16px; }
-.empty-title { font-size: 16px; color: var(--text2); margin-bottom: 8px; }
-.empty-sub { font-size: 13px; color: var(--text3); line-height: 1.7; }
-.section { margin-bottom: 32px; }
-.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-.section-title { font-size: 13px; font-weight: 500; color: var(--text); font-family: var(--mono); letter-spacing: .04em; }
-.section-count { font-family: var(--mono); font-size: 11px; color: var(--text3); background: var(--bg3); padding: 2px 8px; border-radius: 20px; }
-.place-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
-.place-header { padding: 14px 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; cursor: pointer; }
-.place-header:hover { background: var(--bg3); }
-.place-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-.place-meta { font-size: 11px; color: var(--text2); display: flex; gap: 10px; }
-.rating { color: var(--amber); }
-.btn-analyze { background: var(--accent2); border: 1px solid rgba(200,245,66,.3); color: var(--accent); font-size: 11px; font-family: var(--mono); padding: 5px 12px; border-radius: var(--radius); cursor: pointer; white-space: nowrap; transition: all .15s; }
-.btn-analyze:hover { background: rgba(200,245,66,.15); }
-.btn-analyze:disabled { opacity: .4; cursor: not-allowed; }
-.place-reviews { border-top: 1px solid var(--border); }
-.review-item { padding: 12px 16px; border-bottom: 1px solid var(--border); }
-.review-item:last-child { border-bottom: none; }
-.review-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.review-stars { color: var(--amber); font-size: 11px; }
-.review-date { font-size: 10px; color: var(--text3); font-family: var(--mono); }
-.review-text { font-size: 12px; color: var(--text2); line-height: 1.7; }
-.ai-analysis { margin: 0 16px 14px; background: rgba(200,245,66,.04); border: 1px solid rgba(200,245,66,.15); border-radius: var(--radius); padding: 14px; }
-.ai-label { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: .08em; margin-bottom: 10px; }
-.ai-pain-item { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
-.ai-pain-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin-top: 6px; flex-shrink: 0; }
-.ai-pain-text { font-size: 12px; color: var(--text2); line-height: 1.6; }
-.ai-pain-tag { display: inline-block; font-size: 10px; font-family: var(--mono); background: rgba(200,245,66,.1); color: var(--accent); padding: 1px 7px; border-radius: 20px; margin-left: 6px; }
-.trends-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
-.trends-link { font-family: var(--mono); font-size: 10px; color: var(--accent); text-decoration: none; display: inline-block; margin-top: 8px; }
-.trends-link:hover { opacity: .7; }
-.loading { display: flex; align-items: center; gap: 8px; color: var(--text3); font-family: var(--mono); font-size: 12px; padding: 16px 0; }
-.spinner { width: 14px; height: 14px; border: 1.5px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.error-msg { background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.2); border-radius: var(--radius); padding: 10px 14px; font-size: 12px; color: var(--red); margin-bottom: 12px; }
-@media (max-width: 768px) {
-  .layout { grid-template-columns: 1fr; }
-  .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
-  .main-inner { padding: 20px 16px; }
-  .header { padding: 16px 20px; }
-}
-</style>
-</head>
-<body>
-<div class="header">
-  <div>
-    <div class="logo">Pain Radar</div>
-    <div class="logo-sub">痛點偵測工具 by Naxvo</div>
-  </div>
-  <div class="status-dot"></div>
-</div>
-<div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">搜尋設定</div>
-      <div class="field">
-        <label>店家類型</label>
-        <input type="text" id="biz-type" placeholder="例：醫美診所、美甲工作室" value="醫美診所" />
-      </div>
-      <div class="field">
-        <label>城市</label>
-        <input type="text" id="city" placeholder="例：台北、台中、高雄" value="台北" />
-      </div>
-      <div class="field">
-        <label>Google Trends 關鍵字</label>
-        <input type="text" id="trend-kw" placeholder="例：術後照顧、預約系統" />
-      </div>
-    </div>
-    <button class="btn-search" id="search-btn" onclick="doSearch()">開始分析</button>
-    <div class="sidebar-note">
-      搜尋低評分評論 → AI 反推老闆痛點 → 找到你的商機
-    </div>
-  </aside>
-  <main class="main">
-    <div class="main-inner" id="results">
-      <div class="empty">
-        <div class="empty-icon">◎</div>
-        <div class="empty-title">輸入店家類型開始分析</div>
-        <div class="empty-sub">從 Google Maps 低評分評論<br>用 AI 反推商家營運痛點</div>
-      </div>
-    </div>
-  </main>
-</div>
-<script>
-const PROXY    = 'https://hquzchzcoygnmninemvp.supabase.co/functions/v1/fetch-proxy';
-const AI_PROXY = 'https://hquzchzcoygnmninemvp.supabase.co/functions/v1/ai-autofill';
-const ANON     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxdXpjaHpjb3lnbm1uaW5lbXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzIwMjQsImV4cCI6MjA5NDc0ODAyNH0.igTevzpprg0W_tb3FgcVt5gILcONWMG1jYAW_p7GhYk';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-async function callProxy(type, params) {
-  const res = await fetch(PROXY, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON}` },
-    body: JSON.stringify({ type, params }),
+// ─── API 端點 ───────────────────────────────────────────────────────
+// 舊 API（jdg）：裁判書全文，限 0-6 時，需另外申請
+// 新 API（opendata）：資料集下載，24 小時，用現有帳號
+const JDG_AUTH  = "https://data.judicial.gov.tw/jdg/api/Auth";
+const JDG_JLIST = "https://data.judicial.gov.tw/jdg/api/JList";
+const JDG_JDOC  = "https://data.judicial.gov.tw/jdg/api/JDoc";
+const OD_TOKEN  = "https://opendata.judicial.gov.tw/api/MemberTokens";
+
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const json = (data: unknown, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { ...cors, "Content-Type": "application/json" },
   });
-  return res.json();
+
+const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+// ─── 型別 ──────────────────────────────────────────────────────────
+type TimeRange = "7d" | "30d" | "1y";
+type Winner    = "plaintiff" | "defendant" | "settlement" | "partial" | "unknown";
+type CaseType  = "民事" | "刑事" | "行政" | "懲戒" | "其他";
+
+interface CaseRecord {
+  jid:           string;
+  date:          string;       // ISO YYYY-MM-DD
+  year_month:    string;       // YYYY-MM（用於趨勢）
+  title:         string;
+  case_type:     CaseType;
+  court_level:   "地院" | "高院" | "最高院" | "其他";
+  winner:        Winner;
+  amount?:       number;       // 賠償金額（元）
+  claim_amount?: number;       // 請求金額（若有）
+  recovery_rate?: number;      // 實際/請求比（0-1）
+  keywords:      string[];     // 命中業態關鍵字
+  dispute_tags:  string[];     // 文字模式命中的爭議標籤（pre-AI）
+  full_len:      number;       // 全文長度（代理複雜度）
+  excerpt:       string;       // 前 600 字
 }
 
-async function doSearch() {
-  const bizType = document.getElementById('biz-type').value.trim();
-  const city    = document.getElementById('city').value.trim();
-  const trendKw = document.getElementById('trend-kw').value.trim();
-  if (!bizType) { document.getElementById('biz-type').focus(); return; }
-
-  const btn = document.getElementById('search-btn');
-  btn.disabled = true; btn.textContent = '搜尋中...';
-  document.getElementById('results').innerHTML = '';
-
-  await Promise.allSettled([
-    fetchMaps(bizType, city),
-    trendKw ? Promise.resolve(showTrends(trendKw)) : Promise.resolve(),
-  ]);
-
-  btn.disabled = false; btn.textContent = '開始分析';
+// 全部統計結構
+interface Stats {
+  // ── 描述統計 ──────────────────────────────────────────────
+  n:      number;
+  mean:   number;
+  median: number;
+  sd:     number;       // 標準差
+  se:     number;       // 標準誤
+  min:    number;
+  max:    number;
+  p10:    number;
+  p25:    number;
+  p75:    number;
+  p90:    number;
+  iqr:    number;
+  cv:     number;       // 變異係數 sd/mean
+  ci95:   [number, number]; // 95% CI for mean
+  skewness: number;    // 偏態
+  kurtosis: number;    // 峰態（excess）
 }
 
-function appendSection(id, title, badge, content) {
-  const results = document.getElementById('results');
-  let section = document.getElementById('section-' + id);
-  if (!section) {
-    section = document.createElement('div');
-    section.className = 'section'; section.id = 'section-' + id;
-    section.innerHTML = `<div class="section-header"><div class="section-title">${title}</div><div class="section-count" id="count-${id}">${badge}</div></div><div id="body-${id}"></div>`;
-    results.appendChild(section);
-  } else {
-    document.getElementById('count-' + id).textContent = badge;
+interface CorrelationMatrix {
+  variables: string[];
+  matrix:    number[][];   // Pearson r
+  p_values:  number[][];  // 近似 p-value（大樣本 t-test）
+}
+
+interface DisputeCategory {
+  category:    string;
+  count:       number;
+  pct:         number;
+  avg_amount:  number;
+  med_amount:  number;
+  plaintiff_rate: number;
+  examples:    string[];
+}
+
+interface PainPoint {
+  pain:             string;
+  evidence:         string;
+  frequency_score:  number;
+  severity_score:   number;
+  confidence:       "low" | "medium" | "high";
+  caution:          string;
+  supporting_stats: string; // 具體數字
+}
+
+interface AnalysisResult {
+  // ── 基本資訊 ──────────────────────────────────────────────
+  total_cases:   number;
+  time_range:    TimeRange;
+  date_range:    { start: string; end: string };
+  keyword_breakdown: Record<string, number>;
+
+  // ── 分布統計 ──────────────────────────────────────────────
+  case_type_dist:   Record<string, number>;
+  court_level_dist: Record<string, number>;
+  outcome_dist:     Record<string, number>;
+  monthly_trend:    Array<{ month: string; count: number; avg_amount: number }>;
+
+  // ── 賠償金額完整統計 ──────────────────────────────────────
+  amount_stats:  Stats & { sample_n: number; coverage_pct: number; note: string };
+  claim_stats:   Stats & { sample_n: number };
+
+  // ── 全文長度統計（複雜度代理）──────────────────────────────
+  fulllen_stats: Stats;
+
+  // ── 相關性分析 ────────────────────────────────────────────
+  correlations:  CorrelationMatrix;
+
+  // ── 分組分析：按案件類型 ───────────────────────────────────
+  by_case_type: Record<string, {
+    n:              number;
+    amount_stats:   Partial<Stats>;
+    plaintiff_rate: number;
+  }>;
+
+  // ── 分組分析：按法院層級 ───────────────────────────────────
+  by_court_level: Record<string, {
+    n:              number;
+    amount_stats:   Partial<Stats>;
+    plaintiff_rate: number;
+  }>;
+
+  // ── 爭議標籤（pre-AI，規則基礎）──────────────────────────
+  dispute_tag_dist: Record<string, {
+    count:          number;
+    pct:            number;
+    avg_amount:     number;
+    plaintiff_rate: number;
+  }>;
+
+  // ── AI 爭議分類（post-AI）─────────────────────────────────
+  dispute_categories: DisputeCategory[];
+
+  // ── 時序回歸（月份 vs 案件數）─────────────────────────────
+  time_regression: {
+    slope:     number;    // 每月案件數變化
+    intercept: number;
+    r_squared: number;
+    trend:     "increasing" | "decreasing" | "stable";
+    note:      string;
+  };
+
+  // ── 統計學品質 ────────────────────────────────────────────
+  data_quality: {
+    time_range_note:             string;
+    survivorship_bias:           string;
+    selection_bias:              string;
+    sample_adequacy:             "insufficient" | "moderate" | "adequate" | "good";
+    confidence_note:             string;
+    amount_coverage_warning:     string;
+    keyword_coverage_warning:    string;
+  };
+
+  // ── AI 痛點合成 ───────────────────────────────────────────
+  pain_points: PainPoint[];
+
+  // ── 原始案件清單 ──────────────────────────────────────────
+  cases: CaseRecord[];
+
+  meta: {
+    analyzed_at:      string;
+    keywords_used:    string[];
+    time_range:       TimeRange;
+    fetch_errors:     number;
+    max_cases_limit:  number;
+    api_mode:         "jdg" | "opendata";
+  };
+}
+
+// ─── 純統計函式（無副作用）─────────────────────────────────────────
+
+function calcStats(arr: number[]): Stats {
+  const n = arr.length;
+  if (n === 0) return {
+    n: 0, mean: 0, median: 0, sd: 0, se: 0,
+    min: 0, max: 0, p10: 0, p25: 0, p75: 0, p90: 0,
+    iqr: 0, cv: 0, ci95: [0, 0], skewness: 0, kurtosis: 0,
+  };
+
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mean   = arr.reduce((s, x) => s + x, 0) / n;
+  const variance = n > 1
+    ? arr.reduce((s, x) => s + (x - mean) ** 2, 0) / (n - 1)
+    : 0;
+  const sd = Math.sqrt(variance);
+  const se = n > 0 ? sd / Math.sqrt(n) : 0;
+
+  // 百分位（線性插值）
+  const pct = (p: number) => {
+    const idx = (p / 100) * (n - 1);
+    const lo  = Math.floor(idx);
+    const hi  = Math.ceil(idx);
+    return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+  };
+
+  const p25 = pct(25), p75 = pct(75);
+
+  // 偏態（標準化三階矩）
+  let skewness = 0;
+  if (sd > 0 && n >= 3) {
+    skewness = arr.reduce((s, x) => s + ((x - mean) / sd) ** 3, 0) / n;
   }
-  document.getElementById('body-' + id).innerHTML = content;
-}
 
-function showLoading(id, title) {
-  appendSection(id, title, '載入中', `<div class="loading"><div class="spinner"></div>搜尋中...</div>`);
-}
-
-// ── Google Maps ───────────────────────────────────────────
-async function fetchMaps(bizType, city) {
-  showLoading('maps', `Google Maps — ${bizType} ${city}`);
-  try {
-    const query = `${city} ${bizType}`;
-    const data = await callProxy('maps_search', { query });
-    const places = data.places || [];
-    if (!places.length) {
-      appendSection('maps', `Google Maps — ${bizType}`, '0 筆', `<div class="error-msg">沒有找到相關店家，請換個關鍵字</div>`);
-      return;
-    }
-
-    const html = places.map(p => {
-      const stars = p.rating ? '★'.repeat(Math.round(p.rating)) + '☆'.repeat(5 - Math.round(p.rating)) : '';
-      return `<div class="place-card" id="place-${esc(p.id)}">
-        <div class="place-header">
-          <div>
-            <div class="place-name">${esc(p.displayName?.text || '')}</div>
-            <div class="place-meta">
-              <span class="rating">${stars} ${p.rating || '—'}</span>
-              <span>${p.userRatingCount || 0} 則評論</span>
-              <span>${esc(p.formattedAddress || '')}</span>
-            </div>
-          </div>
-          <button class="btn-analyze" onclick="analyzePlace('${esc(p.id)}', '${esc(p.displayName?.text || '')}', '${esc(bizType)}')">
-            ✦ AI 分析痛點
-          </button>
-        </div>
-        <div id="analysis-${esc(p.id)}"></div>
-      </div>`;
-    }).join('');
-
-    appendSection('maps', `Google Maps — ${bizType} ${city}`, `${places.length} 間店家`, html);
-  } catch(e) {
-    appendSection('maps', `Google Maps`, '錯誤', `<div class="error-msg">載入失敗：${e.message}</div>`);
+  // 峰態（excess kurtosis）
+  let kurtosis = 0;
+  if (sd > 0 && n >= 4) {
+    kurtosis = arr.reduce((s, x) => s + ((x - mean) / sd) ** 4, 0) / n - 3;
   }
+
+  // 95% CI for mean（t-distribution 近似，df=n-1）
+  const tCrit = n >= 120 ? 1.96 : n >= 60 ? 2.0 : n >= 30 ? 2.042 : n >= 20 ? 2.093 : 2.228;
+  const ci95: [number, number] = [mean - tCrit * se, mean + tCrit * se];
+
+  return {
+    n, mean, median: pct(50), sd, se,
+    min: sorted[0], max: sorted[n - 1],
+    p10: pct(10), p25, p75, p90: pct(90),
+    iqr: p75 - p25,
+    cv:  mean !== 0 ? sd / Math.abs(mean) : 0,
+    ci95, skewness, kurtosis,
+  };
 }
 
-// ── AI 分析痛點 ───────────────────────────────────────────
-async function analyzePlace(placeId, placeName, bizType) {
-  const container = document.getElementById(`analysis-${placeId}`);
-  const btn = document.querySelector(`#place-${placeId} .btn-analyze`);
-  if (!container || !btn) return;
+/** Pearson 相關係數 */
+function pearson(x: number[], y: number[]): number {
+  const n = Math.min(x.length, y.length);
+  if (n < 3) return 0;
+  const mx = x.reduce((s, v) => s + v, 0) / n;
+  const my = y.reduce((s, v) => s + v, 0) / n;
+  let cov = 0, sx = 0, sy = 0;
+  for (let i = 0; i < n; i++) {
+    cov += (x[i] - mx) * (y[i] - my);
+    sx  += (x[i] - mx) ** 2;
+    sy  += (y[i] - my) ** 2;
+  }
+  const denom = Math.sqrt(sx * sy);
+  return denom === 0 ? 0 : cov / denom;
+}
 
-  btn.disabled = true; btn.textContent = '分析中...';
-  container.innerHTML = `<div class="loading" style="padding:12px 16px;"><div class="spinner"></div>抓取評論並分析中...</div>`;
+/** Pearson r → p-value（大樣本 t-test）*/
+function pearsonP(r: number, n: number): number {
+  if (n < 4) return 1;
+  const t   = r * Math.sqrt((n - 2) / (1 - r * r + 1e-12));
+  const df  = n - 2;
+  // 正態近似（df>=30 已足夠準確）
+  const z   = Math.abs(t) / Math.sqrt(df / (df - 2 + 1e-12));
+  const p2  = 2 * (1 - normalCDF(Math.abs(t)));
+  return Math.min(1, Math.max(0, p2));
+}
 
-  try {
-    // 抓評論
-    const data = await callProxy('maps_reviews', { place_id: placeId });
-    const reviews = data.reviews || [];
+/** 標準正態 CDF（近似）*/
+function normalCDF(z: number): number {
+  const t = 1 / (1 + 0.3275911 * Math.abs(z));
+  const poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
+  const cdf = 1 - poly * Math.exp(-z * z / 2);
+  return z >= 0 ? cdf : 1 - cdf;
+}
 
-    if (!reviews.length) {
-      container.innerHTML = `<div style="padding:12px 16px;font-size:12px;color:var(--text3);">這間店沒有公開評論</div>`;
-      btn.disabled = false; btn.textContent = '✦ AI 分析痛點';
-      return;
+/** 簡單線性回歸 */
+function linearRegression(x: number[], y: number[]): { slope: number; intercept: number; r2: number } {
+  const n = x.length;
+  if (n < 2) return { slope: 0, intercept: 0, r2: 0 };
+  const mx = x.reduce((s, v) => s + v, 0) / n;
+  const my = y.reduce((s, v) => s + v, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) {
+    num += (x[i] - mx) * (y[i] - my);
+    den += (x[i] - mx) ** 2;
+  }
+  const slope     = den === 0 ? 0 : num / den;
+  const intercept = my - slope * mx;
+  const yPred     = x.map(xi => slope * xi + intercept);
+  const ssTot     = y.reduce((s, v) => s + (v - my) ** 2, 0);
+  const ssRes     = y.reduce((s, v, i) => s + (v - yPred[i]) ** 2, 0);
+  const r2        = ssTot === 0 ? 0 : 1 - ssRes / ssTot;
+  return { slope, intercept, r2 };
+}
+
+// ─── 資料萃取函式 ───────────────────────────────────────────────────
+
+function rocDateToISO(jdate: string): string {
+  if (!jdate) return "";
+  if (jdate.length === 8) {
+    return `${jdate.slice(0, 4)}-${jdate.slice(4, 6)}-${jdate.slice(6, 8)}`;
+  }
+  if (jdate.length === 7) {
+    return `${parseInt(jdate.slice(0, 3)) + 1911}-${jdate.slice(3, 5)}-${jdate.slice(5, 7)}`;
+  }
+  return jdate;
+}
+
+function extractCaseType(jid: string): CaseType {
+  const code = jid.split(",")?.[0] || "";
+  if (/M$|DM|HM|PM/.test(code)) return "刑事";
+  if (/V$|DV|HV/.test(code))    return "民事";
+  if (/A$|DA|HA/.test(code))    return "行政";
+  if (/P$/.test(code))           return "懲戒";
+  return "其他";
+}
+
+function extractCourtLevel(jid: string): CaseRecord["court_level"] {
+  const code = jid.split(",")?.[0] || "";
+  if (/^TP[HA]|^TPH|^KSH|^TCH/.test(code)) return "高院";
+  if (/^TPS|^TPP/.test(code)) return "最高院";
+  if (/^[A-Z]{2,4}[DMVAP]$/.test(code)) return "地院";
+  return "其他";
+}
+
+// 金額抽取（多重模式，取最大值避免漏掉主文金額）
+function extractAmount(text: string): number | undefined {
+  const patterns = [
+    /被告(?:應|須)(?:給付|賠償)[^。，]{0,20}新臺幣?[（(]?\s*(\d[\d,]*)\s*元/,
+    /賠償[^。，]{0,15}新臺幣?[（(]?\s*(\d[\d,]*)\s*元/,
+    /給付[^。，]{0,15}新臺幣?[（(]?\s*(\d[\d,]*)\s*元/,
+    /損害賠償[^。，]{0,10}新臺幣?[（(]?\s*(\d[\d,]*)\s*元/,
+    /共計新臺幣?[（(]?\s*(\d[\d,]*)\s*元/,
+    /合計新臺幣?[（(]?\s*(\d[\d,]*)\s*元/,
+    /判決[^。，]{0,10}賠償\s*(\d[\d,]*)\s*元/,
+    /主文[^。]{0,50}新臺幣?[（(]?\s*(\d[\d,]*)\s*元/,
+  ];
+  const found: number[] = [];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) {
+      const n = parseInt(m[1].replace(/,/g, ""));
+      if (n >= 1000 && n < 5e9) found.push(n);
     }
+  }
+  return found.length ? Math.max(...found) : undefined;
+}
 
-    // 只取低評分（1-3星）
-    const lowReviews = reviews.filter(r => (r.rating || 5) <= 3);
-    const allReviews = lowReviews.length > 0 ? lowReviews : reviews.slice(0, 5);
+// 請求金額（原告請求，通常高於實判）
+function extractClaimAmount(text: string): number | undefined {
+  const patterns = [
+    /原告請求[^。，]{0,15}新臺幣?[（(]?\s*(\d[\d,]*)\s*元/,
+    /請求被告給付[^。，]{0,15}新臺幣?[（(]?\s*(\d[\d,]*)\s*元/,
+    /訴之聲明[^。]{0,30}新臺幣?[（(]?\s*(\d[\d,]*)\s*元/,
+  ];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) {
+      const n = parseInt(m[1].replace(/,/g, ""));
+      if (n >= 1000 && n < 5e9) return n;
+    }
+  }
+  return undefined;
+}
 
-    // 顯示評論
-    const reviewHtml = allReviews.slice(0, 5).map(r => {
-      const stars = '★'.repeat(r.rating||5) + '☆'.repeat(5-(r.rating||5));
-      const text = r.text?.text || r.originalText?.text || '（無文字評論）';
-      return `<div class="review-item">
-        <div class="review-meta">
-          <span class="review-stars">${stars}</span>
-          <span class="review-date">${r.relativePublishTimeDescription || ''}</span>
-        </div>
-        <div class="review-text">${esc(text)}</div>
-      </div>`;
-    }).join('');
+function extractWinner(text: string): Winner {
+  const head = text.slice(0, 3000);
+  if (/原告之訴(?:均)?駁回|上訴(?:均)?駁回|被告勝訴/.test(head))     return "defendant";
+  if (/原告(?:一部)?勝訴|上訴有理由|被告敗訴/.test(head))             return "plaintiff";
+  if (/一部(?:有|無)理由|部分駁回|部分准許/.test(head))               return "partial";
+  if (/調解成立|和解筆錄|雙方合意|和解成立/.test(head))               return "settlement";
+  return "unknown";
+}
 
-    // 呼叫 AI 分析（透過 Edge Function）
-    const reviewTexts = allReviews.map(r => `${r.rating}星：${r.text?.text || r.originalText?.text || ''}`).join("\n");
-    const aiData = await callProxy("analyze_reviews", {
-      reviews: reviewTexts,
-      bizType: bizType,
-      placeName: placeName,
+// 規則基礎爭議標籤（在 AI 分類前先跑，作為獨立統計維度）
+const DISPUTE_RULES: Record<string, RegExp> = {
+  "術後感染/副作用":    /術後|感染|敗血|發炎|壞死|過敏反應|副作用|後遺症/,
+  "療效不符期待":       /效果不佳|無效|未改善|無明顯|差異不大|效果差/,
+  "知情同意/說明義務":  /知情同意|說明義務|告知義務|同意書|未告知/,
+  "收費/退費爭議":      /退費|退款|多收|亂收費|收費不合|費用糾紛|拒絕退/,
+  "預約/爽約":         /爽約|未到|取消預約|臨時取消|不告而別|失約/,
+  "醫師/員工資格":     /無照|非醫師|資格問題|執照|違法執業|庸醫/,
+  "衛生安全":          /衛生|消毒|器械|環境不潔|安全|滅菌|交叉感染/,
+  "廣告不實":          /廣告不實|虛假廣告|誇大|宣傳失實|詐欺廣告/,
+  "資料隱私":          /隱私|個資|洩漏|資料外洩|個人資料/,
+  "醫療疏失":          /疏失|過失|醫療糾紛|醫療事故|處置不當/,
+  "合約糾紛":          /合約|契約|違約|合同糾紛|服務條款/,
+};
+
+function extractDisputeTags(text: string, title: string): string[] {
+  const combined = title + "\n" + text.slice(0, 5000);
+  return Object.entries(DISPUTE_RULES)
+    .filter(([, re]) => re.test(combined))
+    .map(([tag]) => tag);
+}
+
+// ─── Token 取得（支援兩個 API）──────────────────────────────────────
+
+async function getJdgToken(user: string, pass: string): Promise<string | null> {
+  try {
+    const res  = await fetch(JDG_AUTH, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ user, password: pass }),
     });
-    const result = aiData.analysis;
-    let analysisHtml = '';
-    if (result && typeof result === 'object') {
-      const saasHtml = (result.proposed_micro_saas || []).map(s => `
-        <div style="margin-top:10px;padding:10px 12px;background:var(--bg);border:1px solid rgba(200,245,66,.15);border-radius:6px;">
-          <div style="font-size:12px;font-weight:500;color:var(--accent);margin-bottom:4px;">${esc(s.product_name||'')}</div>
-          <div style="font-size:11.5px;color:var(--text2);margin-bottom:4px;">${esc(s.core_function||'')}</div>
-          <div style="font-size:10.5px;color:var(--text3);font-family:var(--mono);">實作：${esc(s.implementation_logic||'')}</div>
-        </div>`).join('');
-      analysisHtml = `
-        <div class="ai-pain-item" style="margin-bottom:8px;">
-          <div class="ai-pain-dot"></div>
-          <div class="ai-pain-text"><span class="ai-pain-tag">根本原因</span> ${esc(result.root_cause_analysis||'')}</div>
-        </div>
-        <div class="ai-pain-item">
-          <div class="ai-pain-dot"></div>
-          <div class="ai-pain-text"><span class="ai-pain-tag">老闆痛點</span> ${esc(result.owner_pain_point||'')}</div>
-        </div>
-        ${saasHtml}`;
-    } else {
-      analysisHtml = `<div class="ai-pain-item"><div class="ai-pain-dot"></div><div class="ai-pain-text">${esc(String(result||aiData.error||'分析失敗'))}</div></div>`;
+    const data = await res.json();
+    return data.Token || null;
+  } catch { return null; }
+}
+
+async function getOdToken(user: string, pass: string): Promise<string | null> {
+  try {
+    const res  = await fetch(OD_TOKEN, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ memberAccount: user, pwd: pass }),
+    });
+    const data = await res.json();
+    return data.token || null;
+  } catch { return null; }
+}
+
+// ─── JList 時間範圍擴展 ──────────────────────────────────────────────
+// JList 每次只回「呼叫時 7 天前」的清單
+// 要拿「一個月」或「一年」，需要從 Supabase 累積資料庫查詢
+// 本 function 處理：
+//   7d  → 直接打 JList 一次
+//   30d → 從 Supabase judicial_cases 表查（需先建表並設 cron）
+//   1y  → 同上
+
+async function getJidsFromJList(token: string): Promise<string[]> {
+  const res  = await fetch(JDG_JLIST, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ token }),
+  });
+  const data: Array<{ date: string; list: string[] }> = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data.flatMap(d => d.list || []);
+}
+
+async function getJidsFromSupabase(
+  supabase: ReturnType<typeof createClient>,
+  daysBack: number,
+  keywords: string[]
+): Promise<string[]> {
+  const since = new Date();
+  since.setDate(since.getDate() - daysBack);
+  const { data, error } = await supabase
+    .from("judicial_cases")
+    .select("jid")
+    .gte("date", since.toISOString().slice(0, 10))
+    .overlaps("keywords", keywords);
+  if (error || !data) return [];
+  return data.map((r: { jid: string }) => r.jid);
+}
+
+// ─── 主邏輯 ────────────────────────────────────────────────────────
+
+serve(async (request: Request) => {
+  if (request.method === "OPTIONS") return new Response("ok", { headers: cors });
+
+  try {
+    const body = await request.json();
+    const {
+      keywords   = ["美容", "診所", "美甲"],
+      max_cases  = 300,
+      time_range = "7d" as TimeRange,   // "7d" | "30d" | "1y"
+    } = body;
+
+    const judUser = Deno.env.get("JUDICIAL_USER") || "";
+    const judPass = Deno.env.get("JUDICIAL_PASS") || "";
+    if (!judUser || !judPass) {
+      return json({ error: "請設定 JUDICIAL_USER 與 JUDICIAL_PASS" }, 500);
     }
 
-    container.innerHTML = `
-      <div class="place-reviews">${reviewHtml}</div>
-      <div class="ai-analysis">
-        <div class="ai-label">✦ AI 反推老闆痛點與商機</div>
-        ${analysisHtml}
-      </div>`;
+    const keywordArr: string[] = Array.isArray(keywords) ? keywords : [keywords];
 
-    btn.textContent = '✓ 已分析';
-  } catch(e) {
-    container.innerHTML = `<div style="padding:12px 16px;"><div class="error-msg">分析失敗：${e.message}</div></div>`;
-    btn.disabled = false; btn.textContent = '✦ AI 分析痛點';
+    // Supabase client（用於 30d / 1y 模式從累積資料庫查）
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") || "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
+    );
+
+    // ── 1. 取得 Token ──────────────────────────────────────────────
+    // 優先嘗試新 API，失敗則用舊 API
+    let token    = await getOdToken(judUser, judPass);
+    let apiMode: "jdg" | "opendata" = "opendata";
+    if (!token) {
+      token   = await getJdgToken(judUser, judPass);
+      apiMode = "jdg";
+    }
+    if (!token) {
+      return json({ error: "司法院 API 驗證失敗，請確認帳密" }, 401);
+    }
+    console.log(`✓ Token OK (mode: ${apiMode})`);
+
+    // ── 2. 取得 JID 清單（依時間範圍）────────────────────────────
+    let allJids: string[] = [];
+    let timeRangeNote     = "";
+
+    if (time_range === "7d" || apiMode === "opendata") {
+      // 7d：直接打 JList
+      // opendata mode：JList 格式可能不同，先用同一個端點試
+      allJids       = await getJidsFromJList(token);
+      timeRangeNote = `使用 JList API 取得近 7 日異動清單（${allJids.length} 筆 JID）。`;
+    } else if (time_range === "30d") {
+      // 30d：從 Supabase 累積庫取 + 補抓最新 7 天
+      const [sbJids, freshJids] = await Promise.all([
+        getJidsFromSupabase(supabase, 30, keywordArr),
+        getJidsFromJList(token),
+      ]);
+      allJids = [...new Set([...sbJids, ...freshJids])];
+      timeRangeNote = `30 日模式：Supabase 累積庫 ${sbJids.length} 筆 + 最新 ${freshJids.length} 筆，去重後 ${allJids.length} 筆。`;
+    } else if (time_range === "1y") {
+      // 1y：完全從 Supabase 累積庫取
+      const [sbJids, freshJids] = await Promise.all([
+        getJidsFromSupabase(supabase, 365, keywordArr),
+        getJidsFromJList(token),
+      ]);
+      allJids = [...new Set([...sbJids, ...freshJids])];
+      timeRangeNote = `一年模式：Supabase 累積庫 ${sbJids.length} 筆 + 最新 ${freshJids.length} 筆，去重後 ${allJids.length} 筆。若累積庫資料不足，結果將偏向近期。`;
+    }
+
+    console.log(`✓ JID 清單：${allJids.length} 筆 (${time_range})`);
+
+    // ── 3. 逐筆抓全文，過濾關鍵字 ──────────────────────────────────
+    const cases: CaseRecord[] = [];
+    let   fetchErrors          = 0;
+    const maxFetch             = Math.min(allJids.length, max_cases);
+    const DELAY_MS             = 150; // 每次請求間隔
+
+    for (let i = 0; i < maxFetch; i++) {
+      const jid = allJids[i];
+      try {
+        await delay(DELAY_MS);
+        const docRes = await fetch(JDG_JDOC, {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ token, j: jid }),
+        });
+        const doc = await docRes.json();
+
+        if (doc.error) { fetchErrors++; continue; }
+        const fullText = doc.JFULLX?.JFULLCONTENT || "";
+        if (!fullText) { fetchErrors++; continue; }
+
+        const hitKw = keywordArr.filter(kw =>
+          fullText.includes(kw) || (doc.JTITLE || "").includes(kw)
+        );
+        if (!hitKw.length) continue;
+
+        const isoDate  = rocDateToISO(doc.JDATE || "");
+        const amount   = extractAmount(fullText);
+        const claim    = extractClaimAmount(fullText);
+
+        cases.push({
+          jid,
+          date:          isoDate,
+          year_month:    isoDate.slice(0, 7),
+          title:         doc.JTITLE || "",
+          case_type:     extractCaseType(jid),
+          court_level:   extractCourtLevel(jid),
+          winner:        extractWinner(fullText),
+          amount,
+          claim_amount:  claim,
+          recovery_rate: (amount && claim && claim > 0) ? amount / claim : undefined,
+          keywords:      hitKw,
+          dispute_tags:  extractDisputeTags(fullText, doc.JTITLE || ""),
+          full_len:      fullText.length,
+          excerpt:       fullText.slice(0, 600),
+        });
+
+        if (cases.length % 20 === 0) console.log(`  → ${cases.length} 件命中...`);
+      } catch (e) {
+        console.error(`JDoc error ${jid}:`, e);
+        fetchErrors++;
+      }
+    }
+
+    console.log(`✓ 命中案件：${cases.length}，錯誤：${fetchErrors}`);
+
+    // ── 4. 嘗試儲存到 Supabase（for 30d/1y 累積）──────────────────
+    if (cases.length > 0) {
+      const rows = cases.map(c => ({
+        jid:          c.jid,
+        date:         c.date,
+        title:        c.title,
+        case_type:    c.case_type,
+        court_level:  c.court_level,
+        winner:       c.winner,
+        amount:       c.amount || null,
+        claim_amount: c.claim_amount || null,
+        keywords:     c.keywords,
+        dispute_tags: c.dispute_tags,
+        full_len:     c.full_len,
+        excerpt:      c.excerpt,
+      }));
+      const { error: upsertErr } = await supabase
+        .from("judicial_cases")
+        .upsert(rows, { onConflict: "jid", ignoreDuplicates: false });
+      if (upsertErr) console.warn("Supabase upsert warn:", upsertErr.message);
+      else console.log(`✓ 已儲存 ${rows.length} 筆至 Supabase`);
+    }
+
+    // ── 5. 統計計算 ────────────────────────────────────────────────
+
+    // 5a. 分布統計
+    const caseTypeDist:   Record<string, number> = {};
+    const courtLevelDist: Record<string, number> = {};
+    const outcomeDist:    Record<string, number> = { plaintiff: 0, defendant: 0, settlement: 0, partial: 0, unknown: 0 };
+    for (const c of cases) {
+      caseTypeDist[c.case_type]     = (caseTypeDist[c.case_type]   || 0) + 1;
+      courtLevelDist[c.court_level] = (courtLevelDist[c.court_level] || 0) + 1;
+      outcomeDist[c.winner]++;
+    }
+
+    // 5b. 關鍵字分布
+    const kwBreakdown: Record<string, number> = {};
+    for (const kw of keywordArr) kwBreakdown[kw] = 0;
+    for (const c of cases)
+      for (const kw of c.keywords)
+        kwBreakdown[kw] = (kwBreakdown[kw] || 0) + 1;
+
+    // 5c. 月度趨勢（含月均金額）
+    const monthMap: Record<string, { count: number; amounts: number[] }> = {};
+    for (const c of cases) {
+      if (!c.year_month) continue;
+      if (!monthMap[c.year_month]) monthMap[c.year_month] = { count: 0, amounts: [] };
+      monthMap[c.year_month].count++;
+      if (c.amount) monthMap[c.year_month].amounts.push(c.amount);
+    }
+    const monthlyTrend = Object.entries(monthMap).sort().map(([month, v]) => ({
+      month,
+      count:      v.count,
+      avg_amount: v.amounts.length ? Math.round(v.amounts.reduce((s, x) => s + x, 0) / v.amounts.length) : 0,
+    }));
+
+    // 5d. 金額統計
+    const amounts       = cases.map(c => c.amount).filter((x): x is number => x !== undefined);
+    const claimAmounts  = cases.map(c => c.claim_amount).filter((x): x is number => x !== undefined);
+    const recoveryRates = cases.map(c => c.recovery_rate).filter((x): x is number => x !== undefined);
+    const fullLens      = cases.map(c => c.full_len);
+
+    const amountStatsRaw = calcStats(amounts);
+    const amountStats    = {
+      ...amountStatsRaw,
+      sample_n:      amounts.length,
+      coverage_pct:  cases.length ? Math.round(amounts.length / cases.length * 100) : 0,
+      note:          `${amounts.length}/${cases.length} 筆（${Math.round(amounts.length / Math.max(cases.length, 1) * 100)}%）可抽取金額。和解/駁回案通常無明確金額，實際損失可能被低估。`,
+    };
+    const claimStats   = { ...calcStats(claimAmounts), sample_n: claimAmounts.length };
+    const fulllenStats = calcStats(fullLens);
+
+    // 5e. 相關性矩陣
+    // 變數：amount, claim, recovery_rate, full_len, is_plaintiff（0/1）
+    const isPlaintiff = cases.map(c => c.winner === "plaintiff" || c.winner === "partial" ? 1 : 0);
+    const corrVars = [
+      { name: "賠償金額",   vals: cases.map(c => c.amount   ?? NaN) },
+      { name: "請求金額",   vals: cases.map(c => c.claim_amount ?? NaN) },
+      { name: "回收率",    vals: cases.map(c => c.recovery_rate ?? NaN) },
+      { name: "全文長度",  vals: fullLens },
+      { name: "原告勝訴",  vals: isPlaintiff },
+    ];
+    // 過濾 NaN pair
+    const corrMatrix: number[][] = corrVars.map((v1, i) =>
+      corrVars.map((v2, j) => {
+        if (i === j) return 1;
+        const pairs = v1.vals.map((x, k) => [x, v2.vals[k]])
+          .filter(([a, b]) => !isNaN(a) && !isNaN(b));
+        return pairs.length < 5 ? 0 : pearson(pairs.map(p => p[0]), pairs.map(p => p[1]));
+      })
+    );
+    const pMatrix: number[][] = corrVars.map((v1, i) =>
+      corrVars.map((v2, j) => {
+        if (i === j) return 0;
+        const pairs = v1.vals.map((x, k) => [x, v2.vals[k]])
+          .filter(([a, b]) => !isNaN(a) && !isNaN(b));
+        return pairs.length < 5 ? 1 : pearsonP(corrMatrix[i][j], pairs.length);
+      })
+    );
+    const correlations: CorrelationMatrix = {
+      variables: corrVars.map(v => v.name),
+      matrix:    corrMatrix.map(row => row.map(v => Math.round(v * 1000) / 1000)),
+      p_values:  pMatrix.map(row  => row.map(v => Math.round(v * 1000) / 1000)),
+    };
+
+    // 5f. 分組分析（by case_type）
+    const byCaseType: AnalysisResult["by_case_type"] = {};
+    for (const ct of ["民事", "刑事", "行政", "懲戒", "其他"] as CaseType[]) {
+      const grp = cases.filter(c => c.case_type === ct);
+      if (!grp.length) continue;
+      const grpAmts = grp.map(c => c.amount).filter((x): x is number => x !== undefined);
+      byCaseType[ct] = {
+        n:              grp.length,
+        amount_stats:   grpAmts.length >= 3 ? calcStats(grpAmts) : { n: grpAmts.length, mean: grpAmts[0] || 0 },
+        plaintiff_rate: grp.length ? grp.filter(c => c.winner === "plaintiff" || c.winner === "partial").length / grp.length : 0,
+      };
+    }
+
+    // 5g. 分組分析（by court_level）
+    const byCourtLevel: AnalysisResult["by_court_level"] = {};
+    for (const cl of ["地院", "高院", "最高院", "其他"] as Array<CaseRecord["court_level"]>) {
+      const grp = cases.filter(c => c.court_level === cl);
+      if (!grp.length) continue;
+      const grpAmts = grp.map(c => c.amount).filter((x): x is number => x !== undefined);
+      byCourtLevel[cl] = {
+        n:              grp.length,
+        amount_stats:   grpAmts.length >= 3 ? calcStats(grpAmts) : { n: grpAmts.length, mean: grpAmts[0] || 0 },
+        plaintiff_rate: grp.length ? grp.filter(c => c.winner === "plaintiff" || c.winner === "partial").length / grp.length : 0,
+      };
+    }
+
+    // 5h. 爭議標籤分布（規則基礎）
+    const tagDist: AnalysisResult["dispute_tag_dist"] = {};
+    for (const [tag] of Object.entries(DISPUTE_RULES)) {
+      const grp = cases.filter(c => c.dispute_tags.includes(tag));
+      if (!grp.length) continue;
+      const grpAmts = grp.map(c => c.amount).filter((x): x is number => x !== undefined);
+      tagDist[tag] = {
+        count:          grp.length,
+        pct:            Math.round(grp.length / cases.length * 100),
+        avg_amount:     grpAmts.length ? Math.round(grpAmts.reduce((s, x) => s + x, 0) / grpAmts.length) : 0,
+        plaintiff_rate: grp.filter(c => c.winner === "plaintiff" || c.winner === "partial").length / grp.length,
+      };
+    }
+
+    // 5i. 時序回歸
+    const trendX = monthlyTrend.map((_, i) => i);
+    const trendY = monthlyTrend.map(m => m.count);
+    const reg    = linearRegression(trendX, trendY);
+    const trend  = Math.abs(reg.slope) < 0.1 ? "stable" : reg.slope > 0 ? "increasing" : "decreasing";
+    const timeRegression = {
+      slope:     Math.round(reg.slope * 100) / 100,
+      intercept: Math.round(reg.intercept * 100) / 100,
+      r_squared: Math.round(reg.r2 * 1000) / 1000,
+      trend,
+      note: trend === "stable"
+        ? "月度案件數無明顯趨勢（slope 絕對值 <0.1）"
+        : trend === "increasing"
+        ? `月均增加 ${Math.abs(reg.slope).toFixed(2)} 件，R²=${reg.r2.toFixed(3)}。注意：樣本期間短時此趨勢可靠性低。`
+        : `月均減少 ${Math.abs(reg.slope).toFixed(2)} 件，R²=${reg.r2.toFixed(3)}。注意：樣本期間短時此趨勢可靠性低。`,
+    };
+
+    // 5j. 資料品質
+    const n = cases.length;
+    const sampleAdequacy =
+      n < 10  ? "insufficient" :
+      n < 30  ? "moderate"     :
+      n < 100 ? "adequate"     : "good";
+
+    const ci95Width = n > 1 ? Math.round(200 / Math.sqrt(n)) : 100;
+    const dataQuality: AnalysisResult["data_quality"] = {
+      time_range_note: timeRangeNote,
+      survivorship_bias: "裁判書僅記錄進入訴訟的案件（冰山一角）。多數糾紛在私下退費、調解或客訴後結案，不產生裁判書。本資料集系統性低估問題頻率，且金額越大的案件越容易訴訟。",
+      selection_bias: `關鍵字「${keywordArr.join("、")}」可能排除同義詞（如「微整形」≠「醫美」）。建議擴充同義詞庫。dispute_tags 為規則基礎，dispute_categories 為 AI 判斷，兩者均有分類誤差。`,
+      sample_adequacy: sampleAdequacy as AnalysisResult["data_quality"]["sample_adequacy"],
+      confidence_note: n < 10
+        ? `n=${n}，比例統計 95% CI ≈ ±40%，任何百分比僅供方向參考，切勿量化引用。`
+        : `n=${n}，比例統計 95% CI ≈ ±${ci95Width}%。${n >= 100 ? "樣本具初步統計效力。" : "建議擴大樣本再下結論。"}`,
+      amount_coverage_warning: `僅 ${amountStats.coverage_pct}% 案件能自動抽取賠償金額。未能抽取者可能為和解（金額保密）、駁回（無賠償）或 PDF 格式，非代表金額為零。`,
+      keyword_coverage_warning: `本次掃描 ${Math.min(maxFetch, allJids.length)} 筆 JID，命中率 ${cases.length}/${Math.min(maxFetch, allJids.length)}（${Math.round(cases.length / Math.max(Math.min(maxFetch, allJids.length), 1) * 100)}%）。`,
+    };
+
+    // ── 6. AI 爭議分類 + 痛點合成 ─────────────────────────────────
+    const openaiKey = Deno.env.get("OPENAI_API_KEY") || "";
+
+    // 送給 AI 的資料：摘要 + 所有預計算統計
+    const casesSummary = cases.slice(0, 100).map((c, i) =>
+      `[${i + 1}] ${c.date} | ${c.case_type}/${c.court_level} | ${c.title} | 勝訴:${c.winner} | 金額:${c.amount ? (c.amount / 10000).toFixed(1) + "萬" : "不明"} | 標籤:${c.dispute_tags.join(",")||"無"}`
+    ).join("\n");
+
+    const statsContext = `
+【統計摘要】
+n=${n}, 樣本品質=${sampleAdequacy}
+賠償金額：n=${amounts.length}, 中位數=${(amountStats.median/10000).toFixed(1)}萬, 平均=${(amountStats.mean/10000).toFixed(1)}萬, SD=${(amountStats.sd/10000).toFixed(1)}萬, 偏態=${amountStats.skewness.toFixed(2)}, P75=${(amountStats.p75/10000).toFixed(1)}萬
+回收率（判決/請求）：n=${recoveryRates.length}, 中位數=${recoveryRates.length ? (calcStats(recoveryRates).median * 100).toFixed(1) : "N/A"}%
+原告勝訴率：${Math.round((outcomeDist.plaintiff + outcomeDist.partial) / Math.max(n, 1) * 100)}%（含部分勝訴）
+案件類型：${JSON.stringify(caseTypeDist)}
+法院層級：${JSON.stringify(courtLevelDist)}
+爭議標籤分布（規則基礎）：${JSON.stringify(Object.fromEntries(Object.entries(tagDist).map(([k, v]) => [k, v.count])))}
+月度趨勢：${trend}（slope=${timeRegression.slope}/月, R²=${timeRegression.r_squared}）
+    `.trim();
+
+    const aiPrompt = `你是嚴謹的法律資料分析師。任務：分類爭議、合成有數據支撐的老闆痛點。
+
+【核心要求】
+1. 爭議分類：每筆案件歸一個主類別，統計各類的數量、平均金額、原告勝訴率
+2. 痛點合成：3-6 個，每個必須引用具體統計數字（中位數/百分比/樣本數）
+3. 信心評估：high=樣本≥20且模式一致；medium=樣本5-19；low=樣本<5或定義模糊
+4. 侷限性：每個痛點說明「此數字可能被高估/低估的原因」
+5. 不要在小樣本上做強結論；使用「初步顯示」「傾向」等措辭
+
+${statsContext}
+
+【案件清單（前100筆）】
+${casesSummary}
+
+【輸出格式：純合法 JSON，禁止任何 Markdown 或說明文字】
+{
+  "dispute_categories": [
+    {
+      "category": "類別名稱",
+      "count": 數字,
+      "pct": 整數百分比,
+      "avg_amount": 平均賠償（元，整數，0代表不明）,
+      "med_amount": 中位賠償（元，整數），
+      "plaintiff_rate": 原告勝訴率（0-1小數）,
+      "examples": ["案由1", "案由2"]
+    }
+  ],
+  "pain_points": [
+    {
+      "pain": "痛點描述（20-50字，具體，避免空話）",
+      "evidence": "引用具體數字（如：N筆案件，中位賠償X萬元，原告勝訴率Y%）",
+      "frequency_score": 0-100,
+      "severity_score": 0-100,
+      "confidence": "low|medium|high",
+      "caution": "此分析的主要偏差來源（20字內）",
+      "supporting_stats": "補充的統計細節"
+    }
+  ]
+}`;
+
+    let disputeCategories: DisputeCategory[] = [];
+    let painPoints:        PainPoint[]        = [];
+
+    try {
+      const aiRes  = await fetch("https://api.openai.com/v1/chat/completions", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${openaiKey}` },
+        body: JSON.stringify({
+          model:       "gpt-4o-mini",
+          max_tokens:  4000,
+          temperature: 0.05,
+          messages: [
+            { role: "system", content: "嚴謹統計分析師。只輸出合法 JSON。" },
+            { role: "user",   content: aiPrompt },
+          ],
+        }),
+      });
+      const aiData = await aiRes.json();
+      const raw    = aiData.choices?.[0]?.message?.content || "{}";
+      const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+      disputeCategories = parsed.dispute_categories || [];
+      painPoints        = parsed.pain_points        || [];
+      console.log(`✓ AI 完成：${disputeCategories.length} 類，${painPoints.length} 痛點`);
+    } catch (e) {
+      console.error("AI 失敗：", e);
+      disputeCategories = [{ category: "AI 分類失敗", count: n, pct: 100, avg_amount: 0, med_amount: 0, plaintiff_rate: 0, examples: [] }];
+    }
+
+    // ── 7. 回傳 ────────────────────────────────────────────────────
+    const dates = cases.map(c => c.date).filter(Boolean).sort();
+    const result: AnalysisResult = {
+      total_cases:       n,
+      time_range,
+      date_range:        { start: dates[0] || "", end: dates[dates.length - 1] || "" },
+      keyword_breakdown: kwBreakdown,
+      case_type_dist:    caseTypeDist,
+      court_level_dist:  courtLevelDist,
+      outcome_dist:      outcomeDist,
+      monthly_trend:     monthlyTrend,
+      amount_stats:      amountStats,
+      claim_stats:       claimStats,
+      fulllen_stats:     fulllenStats,
+      correlations,
+      by_case_type:      byCaseType,
+      by_court_level:    byCourtLevel,
+      dispute_tag_dist:  tagDist,
+      dispute_categories: disputeCategories,
+      time_regression:   timeRegression,
+      data_quality:      dataQuality,
+      pain_points:       painPoints,
+      cases,
+      meta: {
+        analyzed_at:     new Date().toISOString(),
+        keywords_used:   keywordArr,
+        time_range,
+        fetch_errors:    fetchErrors,
+        max_cases_limit: max_cases,
+        api_mode:        apiMode,
+      },
+    };
+
+    return json(result);
+
+  } catch (err) {
+    console.error("Fatal:", err);
+    return json({ error: String(err) }, 500);
   }
-}
-
-// ── Google Trends ─────────────────────────────────────────
-function showTrends(keyword) {
-  const kw = encodeURIComponent(keyword);
-  const url = `https://trends.google.com.tw/trends/explore?geo=TW&q=${kw}`;
-  appendSection('trends', 'Google Trends（台灣）', '外部連結',
-    `<div class="trends-card">
-      <div style="font-size:13px;font-weight:500;color:var(--text);">查看「${esc(keyword)}」在台灣的搜尋趨勢</div>
-      <div style="font-size:12px;color:var(--text2);margin-top:6px;">確認這個問題是否有足夠多的人在搜尋解法。</div>
-      <a class="trends-link" href="${url}" target="_blank">前往 Google Trends 查看 →</a>
-    </div>`
-  );
-}
-
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-document.getElementById('biz-type').addEventListener('keydown', e => { if (e.key==='Enter') doSearch(); });
-</script>
-</body>
-</html>
+});
